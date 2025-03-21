@@ -9,24 +9,24 @@ class MockParent:
     def __init__(self):
         self.attr_abstract = True
 
-    def abstract_method(self, arg : bool) -> bool:
+    def abstract_method(self, arg: bool) -> bool:
         return (self.attr_abstract and arg)
 
 class MockClass(MockParent):
-    _core : bool
-    attr_basic : int
-    attr_union : Union[int, float]
-    attr_list : List[MockCore]
-    attr_tuple : Tuple[int, MockCore]
+    _core: bool
+    attr_basic: int
+    attr_union: Union[int, float]
+    attr_list: List[MockCore]
+    attr_tuple: Tuple[int, MockCore]
 
 
     def __init__(self):
         super().__init__()
-        self._core = self.attr_abstract
-        self.attr_basic = None
-        self.attr_union = None
-        self.attr_list = None
-        self.attr_tuple = None
+        self._core: bool = self.attr_abstract
+        self.attr_basic: int = None
+        self.attr_union: Union[int, float] = None
+        self.attr_list: List[MockCore] = None
+        self.attr_tuple: Tuple[int, MockCore] = None
 
     @property
     def core(self):
@@ -48,9 +48,6 @@ class MockClass(MockParent):
 
     @staticmethod
     def static_method(arg : str) -> None:
-        pass
-
-    def method(self, arg):
         pass
 
     @classmethod
