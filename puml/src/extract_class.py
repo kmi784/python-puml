@@ -1,7 +1,19 @@
 from inspect import getfile
-from ast import parse, walk, AST, ClassDef, FunctionDef, Assign, AnnAssign, Attribute, Name, Subscript, Tuple, Constant, dump
-def printf(*args: AST): 
-    print(*[dump(arg) for arg in args] , "\n") 
+from ast import (
+    parse, 
+    walk, 
+    AST, 
+    ClassDef, 
+    FunctionDef, 
+    Assign, 
+    AnnAssign, 
+    Attribute, 
+    Name, 
+    Subscript, 
+    Tuple, 
+    Constant, 
+    dump,
+)
 
 class ExtractClassChart:
     def __init__(self, cls, kind : str = "class"):
@@ -85,7 +97,7 @@ class ExtractClassChart:
                 self.attributes[node.name] = value
         else:
             self.methods[node.name] = f"{kind}{node.name}({", ".join(arguments)})"\
-                                  f"-> {returns}"
+                                  f" -> {returns}"
 
 
     def _format_type(self, node : AST) -> str:
@@ -93,7 +105,7 @@ class ExtractClassChart:
         if isinstance(node, Subscript):
             base_type = node.value.id
             if isinstance(node.slice, Tuple):
-                slice_type = ", ".join([t.id for t in node.slice.elts])
+                slice_type = ", ".join([self._format_type(t) for t in node.slice.elts])
             elif isinstance(node.slice, Subscript):
                 slice_type = self._format_type(node.slice)  
             else:
@@ -102,14 +114,14 @@ class ExtractClassChart:
         # handles basic annotation
         elif isinstance(node, Name):
             return f"{node.id}"
-        else:
-            return "EMPTY"
+        # handles constant annotations like None
+        elif isinstance(node, Constant):
+            return f"{node.value}"
+        return "EMPTY"
 
         
 if __name__ == "__main__":
-    from puml.test import MockClass, MockParent
+    from puml.test import MockClass
 
     obj = ExtractClassChart(MockClass, "class")
-    print(obj)
-    obj = ExtractClassChart(MockParent, "abstract")
     print(obj)
