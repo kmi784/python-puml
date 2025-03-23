@@ -31,12 +31,12 @@ class ExtractClassChart:
                     class_node = node
 
         # helper to handle (not) annotated attribute assignments 
-        def _get_assignment(node : AST) -> None:
+        def _get_assignment(node : AST, is_class_level: bool = False) -> None:
             if isinstance(node, Assign):
                 for target in node.targets:
-                    self._add_attribute(target)
+                    self._add_attribute(target, is_class_level)
             elif isinstance(node, AnnAssign): 
-                self._add_attribute(node.target, node.annotation) 
+                self._add_attribute(node.target,is_class_level, node.annotation) 
 
         for node in class_node.body:
             _get_assignment(node) # get attributes at class level
@@ -57,11 +57,18 @@ class ExtractClassChart:
         return output
     
 
-    def _add_attribute(self, node : AST, annotation : AST = None) -> None:
-        if isinstance(node, Attribute) and node.value.id == "self":
+    def _add_attribute(self, 
+                       node : AST, 
+                       is_class_level: bool, 
+                       annotation : AST = None) -> None:
+        if (isinstance(node, Attribute) 
+            and isinstance(node.value, Name) 
+            and node.value.id == "self"):
             name = node.attr
-        elif isinstance(node, Name):
+        elif is_class_level and isinstance(node, Name):
             name = node.id
+        else:
+            return
         value = f"{name}: {self._format_type(annotation)}"
         if name in self.attributes:
             if (self.attributes[name].count("EMPTY") 
@@ -72,7 +79,8 @@ class ExtractClassChart:
 
 
     def _add_method(self, node : FunctionDef) -> None:
-        # determines kind of method, i.e. "property", "staticmethod" or "classmethod"
+        # determines kind of method, 
+        # i.e. "property", "staticmethod" or "classmethod"
         kind, decorators = "", ("staticmethod", "classmethod") 
         for subnode in node.decorator_list:
             if isinstance(subnode, Name):
