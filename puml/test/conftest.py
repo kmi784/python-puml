@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 class MockCore:
     pass
@@ -13,7 +13,7 @@ class MockParent:
         return (self.attr_abstract and arg)
 
 class MockClass(MockParent):
-    _core: bool = True
+    _core: bool 
     attr_basic: int
     attr_union: Union[int, float]
     attr_list: List[MockCore]
@@ -22,7 +22,7 @@ class MockClass(MockParent):
 
     def __init__(self):
         super().__init__()
-        #self._core: bool = self.attr_abstract
+        self._core: bool = self.attr_abstract
         self.attr_basic: int = None
         self.attr_union: Union[int, float] = None
         self.attr_list: List[MockCore] = None
@@ -34,11 +34,11 @@ class MockClass(MockParent):
 
     @core.getter
     def core(self) -> bool:
-        pass#return self._core
+        return self._core
 
     @core.setter
     def core(self, arg : bool) -> None:
-        pass#self._core = arg
+        self._core = arg
 
     def _help_method(self) -> None:
         pass
@@ -47,7 +47,7 @@ class MockClass(MockParent):
         self._help_method()
 
     @staticmethod
-    def static_method(arg : str) -> None:
+    def static_method(arg : Optional[List[Union[int, float]]]) -> None:
         pass
 
     @classmethod

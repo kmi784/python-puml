@@ -1,5 +1,7 @@
 from inspect import getfile
-from ast import parse, walk, dump, AST, ClassDef, FunctionDef, Assign, AnnAssign, Attribute, Name, Subscript, Tuple, Constant
+from ast import parse, walk, AST, ClassDef, FunctionDef, Assign, AnnAssign, Attribute, Name, Subscript, Tuple, Constant, dump
+def printf(*args: AST): 
+    print(*[dump(arg) for arg in args] , "\n") 
 
 class ExtractClassChart:
     def __init__(self, cls, kind : str = "class"):
@@ -58,12 +60,31 @@ class ExtractClassChart:
 
 
     def _add_method(self, node : FunctionDef) -> None:
-        arguments = [f"{arg.arg}: {self._format_type(arg.annotation)}" 
-                     for arg in node.args.args 
-                     if arg.arg != "self"]
-        returns = node.returns.value if isinstance(node.returns, Constant) else self._format_type(node.returns)
-
-        self.methods[node.name] = f"{node.name}({", ".join(arguments)})"\
+        # determines kind of method, i.e. "property", "staticmethod" or "classmethod"
+        kind, decorators = "", ("staticmethod", "classmethod") 
+        for subnode in node.decorator_list:
+            if isinstance(subnode, Name):
+                kind = "{static}" if subnode.id in decorators else f"{{{subnode.id}}}"
+            elif isinstance(subnode, Attribute):
+                kind = "{property}"
+        # determines argument names and their types
+        arguments = [
+            f"{arg.arg}: {self._format_type(arg.annotation)}" 
+            for arg in node.args.args if arg.arg != "self"
+        ]
+        # determines return type
+        if isinstance(node.returns, Constant):
+            returns = node.returns.value 
+        else: 
+            returns = self._format_type(node.returns)
+        # add attribute or method depending on kind
+        if kind == "{property}":
+            value = f"{node.name}: {returns}"
+            if not (node.name in self.attributes
+                    and any(t in value for t in ("None", "EMPTY"))):
+                self.attributes[node.name] = value
+        else:
+            self.methods[node.name] = f"{kind}{node.name}({", ".join(arguments)})"\
                                   f"-> {returns}"
 
 
