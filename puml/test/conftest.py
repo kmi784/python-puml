@@ -13,7 +13,7 @@ class MockParent:
         return (self.attr_abstract and arg)
 
 class MockClass(MockParent):
-    _core: bool
+    _core: bool = True
     attr_basic: int
     attr_union: Union[int, float]
     attr_list: List[MockCore]
@@ -22,7 +22,7 @@ class MockClass(MockParent):
 
     def __init__(self):
         super().__init__()
-        self._core: bool = self.attr_abstract
+        #self._core: bool = self.attr_abstract
         self.attr_basic: int = None
         self.attr_union: Union[int, float] = None
         self.attr_list: List[MockCore] = None
@@ -34,11 +34,11 @@ class MockClass(MockParent):
 
     @core.getter
     def core(self) -> bool:
-        return self._core
+        pass#return self._core
 
     @core.setter
     def core(self, arg : bool) -> None:
-        self._core = arg
+        pass#self._core = arg
 
     def _help_method(self) -> None:
         pass

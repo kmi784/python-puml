@@ -1,115 +1,94 @@
-from inspect import (
-    getmembers,
-    getfullargspec, 
-    getattr_static, 
-    isfunction, 
-    ismethod, 
-)
-from typing import (
-    List, 
-    Type, 
-    Union, 
-    get_args,
-    get_origin,
-    get_type_hints, 
-)
-     
+from inspect import getfile
+from ast import parse, walk, dump, AST, ClassDef, FunctionDef, Assign, AnnAssign, Attribute, Name, Subscript, Tuple, Constant
 
 class ExtractClassChart:
     def __init__(self, cls, kind : str = "class"):
         self.name: str = cls.__name__
-        self.attributes: List[str] = []
-        self.methods: List[str] = []
+        self.attributes: dict = {}
+        self.methods: dict = {}
         if kind in ("class", "interface", "abstract"):
             self.kind: str = kind
-        else:
-            raise ValueError(f"\"{kind}\" is not a plantuml-class-type!")
+        
+        # get considered class
+        with open(getfile(cls), "r") as file:
+            tree = parse(file.read())
+            for node in  tree.body:
+                if isinstance(node, ClassDef) and node.name == self.name:
+                    class_node = node
 
-        # attributes
-        for name, return_type in get_type_hints(cls).items():
-            if name[0] != "_":
-                if any(name in get_type_hints(base) for base in cls.__bases__):
-                    self.attributes.append(
-                        f"+{{abstract}}{name}: {self._format(return_type)}"
-                    )
-                else:
-                    self.attributes.append(
-                        f"+{name}: {self._format(return_type)}"
-                    )
+        # helper to handle (not) annotated attribute assignments 
+        def _get_assignment(node : AST) -> None:
+            if isinstance(node, Assign):
+                for target in node.targets:
+                    self._add_attribute(target)
+            elif isinstance(node, AnnAssign): 
+                self._add_attribute(node.target, node.annotation) 
 
-        # properties, methods
-        for name, object in getmembers(cls):
-            if name[0] != "_":
-                if self._check(cls, name, property):
-                    _, returns = self._hint(object.fget)
-                    self.attributes.append(f"+{name}: {returns}")
-                else:
-                    args, returns = self._hint(object)
-                    if (
-                        self._check(cls, name, staticmethod) 
-                        or self._check(cls, name, classmethod)
-                    ):
-                        self.methods.append(
-                            f"+{{static}}{name}({args}) -> {returns}"
-                        )
-                    else:
-                        if any(hasattr(base, name) for base in cls.__bases__):
-                            self.methods.append(
-                                f"+{{abstract}}{name}({args}) -> {returns}"
-                            )
-                        elif isfunction(object) or ismethod(object):
-                            self.methods.append(f"+{name}({args}) -> {returns}")
-
-
+        for node in class_node.body:
+            _get_assignment(node) # get attributes at class level
+            if isinstance(node, FunctionDef): 
+                self._add_method(node) # get methods
+                for subnode in walk(node):
+                    _get_assignment(subnode) # get attributes at instance level 
+                        
+                
     def __repr__(self) -> str:
         output = f"{self.kind} {self.name}{{\n"
-        for attribute in self.attributes:
-            output += f"\t{attribute}\n"
+        for attribute in self.attributes.values():
+            output += f"\t+{attribute}\n"
         output += "\n"
-        for method in self.methods:
-            output += f"\t{method}\n"
+        for method in self.methods.values():
+            output += f"\t+{method}\n"
         output += "}\n"
         return output
+    
 
-
-    def _hint(self, member) -> str:
-        hints = get_type_hints(member)
-        for arg in getfullargspec(member).args:
-            if arg not in ("self", "cls"):
-                if arg in hints:
-                    hints[arg] = self._format(self._format(hints[arg]))
-                else: 
-                    hints[arg] ="EMPTY"
-        if "return" in hints:
-            return_type = f"{self._format(hints.pop("return"))}" 
+    def _add_attribute(self, node : AST, annotation : AST = None) -> None:
+        if isinstance(node, Attribute) and node.value.id == "self":
+            name = node.attr
+        elif isinstance(node, Name):
+            name = node.id
+        value = f"{name}: {self._format_type(annotation)}"
+        if name in self.attributes:
+            if (self.attributes[name].count("EMPTY") 
+                >= value.count("EMPTY")):
+                self.attributes[name] = value
         else:
-            return_type = "EMPTY"
-        arg_type = ", ".join([f"{key}: {value}" for key, value in hints.items()])
-        return arg_type, return_type
-    
+            self.attributes[name] = value
 
-    def _format(self, data_type : Type) -> str:
-        origin = get_origin(data_type)
-        args = get_args(data_type)
-        if origin:
-            name = origin.__name__ if hasattr(origin, '__name__') else str(origin)
-            args_str = ', '.join(self._format(arg) for arg in args)
-            return f"{name}[{args_str}]"
-        if getattr(data_type, '__origin__', None) is Union and type(None) in args:
-            non_none = [arg for arg in args if arg is not type(None)][0]
-            return f"Optional[{self._format(non_none)}]"
-        if hasattr(data_type, '__name__'):
-            return data_type.__name__
-        return str(data_type).replace('typing.', '')
-    
 
-    @staticmethod
-    def _check(class_name, method_name, method_kind) -> bool:
-        return isinstance(getattr_static(class_name, method_name), method_kind)
-    
+    def _add_method(self, node : FunctionDef) -> None:
+        arguments = [f"{arg.arg}: {self._format_type(arg.annotation)}" 
+                     for arg in node.args.args 
+                     if arg.arg != "self"]
+        returns = node.returns.value if isinstance(node.returns, Constant) else self._format_type(node.returns)
 
+        self.methods[node.name] = f"{node.name}({", ".join(arguments)})"\
+                                  f"-> {returns}"
+
+
+    def _format_type(self, node : AST) -> str:
+        # handles typing annotation like Union, Tuple, etc.
+        if isinstance(node, Subscript):
+            base_type = node.value.id
+            if isinstance(node.slice, Tuple):
+                slice_type = ", ".join([t.id for t in node.slice.elts])
+            elif isinstance(node.slice, Subscript):
+                slice_type = self._format_type(node.slice)  
+            else:
+                slice_type = node.slice.id
+            return f"{base_type}[{slice_type}]"
+        # handles basic annotation
+        elif isinstance(node, Name):
+            return f"{node.id}"
+        else:
+            return "EMPTY"
+
+        
 if __name__ == "__main__":
-    from puml.test import MockClass
+    from puml.test import MockClass, MockParent
 
     obj = ExtractClassChart(MockClass, "class")
+    print(obj)
+    obj = ExtractClassChart(MockParent, "abstract")
     print(obj)
