@@ -140,10 +140,6 @@ def test_none_simple_attribute_assignment():
     assert "attr3" in obj.attributes
 
 
- 
-
-
- 
 
 if __name__ == "__main__":
     pass

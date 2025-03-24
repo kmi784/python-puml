@@ -14,10 +14,6 @@ from ast import (
     Constant, 
 )
 
-def printd(*args):
-    from ast import dump
-    print(*[dump(arg) for arg in args], "\n")
-
 class ExtractClassChart:
     def __init__(self, cls, kind : str = "class"):
         self.name: str = cls.__name__
