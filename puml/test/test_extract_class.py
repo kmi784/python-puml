@@ -130,12 +130,14 @@ def test_instance_level_assignment():
 
 class MockNoneSimpleAssignment:
     def __init__(self):
-        #self.attr = {}
-        self.attr["key"] = "value"# assignment with ast.Attribute.value != ast.Name 
+        self.attr1["key"] = "value"
+        self.attr2, self.attr3 = 1, 2
 
 def test_none_simple_attribute_assignment():
     obj = ExtractClassChart(MockNoneSimpleAssignment)
-    print(obj)
+    assert "attr1" in obj.attributes
+    assert "attr2" in obj.attributes
+    assert "attr3" in obj.attributes
 
 
  

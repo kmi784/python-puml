@@ -12,8 +12,11 @@ from ast import (
     Subscript, 
     Tuple, 
     Constant, 
-    dump,
 )
+
+def printd(*args):
+    from ast import dump
+    print(*[dump(arg) for arg in args], "\n")
 
 class ExtractClassChart:
     def __init__(self, cls, kind : str = "class"):
@@ -30,20 +33,13 @@ class ExtractClassChart:
                 if isinstance(node, ClassDef) and node.name == self.name:
                     class_node = node
 
-        # helper to handle (not) annotated attribute assignments 
-        def _get_assignment(node : AST, is_class_level: bool = False) -> None:
-            if isinstance(node, Assign):
-                for target in node.targets:
-                    self._add_attribute(target, is_class_level)
-            elif isinstance(node, AnnAssign): 
-                self._add_attribute(node.target,is_class_level, node.annotation) 
-
+        # get attributes and methods
         for node in class_node.body:
-            _get_assignment(node) # get attributes at class level
+            self._add_attribute(node, is_class_level=True) 
             if isinstance(node, FunctionDef): 
-                self._add_method(node) # get methods
+                self._add_method(node) 
                 for subnode in walk(node):
-                    _get_assignment(subnode) # get attributes at instance level 
+                    self._add_attribute(subnode) 
                         
                 
     def __repr__(self) -> str:
@@ -57,25 +53,36 @@ class ExtractClassChart:
         return output
     
 
-    def _add_attribute(self, 
-                       node : AST, 
-                       is_class_level: bool, 
-                       annotation : AST = None) -> None:
-        if (isinstance(node, Attribute) 
-            and isinstance(node.value, Name) 
-            and node.value.id == "self"):
-            name = node.attr
-        elif is_class_level and isinstance(node, Name):
-            name = node.id
+    def _add_attribute(self, node : AST, is_class_level: bool = False) -> None:
+
+        def _get_name(arg: AST):
+            if isinstance(arg, Subscript):
+                return _get_name(arg.value)
+            elif isinstance(arg, Tuple):
+                return [name for n in arg.elts for name in _get_name(n)]
+            elif isinstance(arg, Attribute) and isinstance(arg.value, Name) and arg.value.id == "self": 
+                return [arg.attr]
+            elif isinstance(arg, Name) and is_class_level:
+                return [arg.id]
+            else:
+                return []
+    
+        if isinstance(node, Assign):
+            for target in node.targets:
+                names = _get_name(target)
+                annotations = ["EMPTY"]*len(names)
+        elif isinstance(node, AnnAssign): 
+            names, annotations = _get_name(node.target), [node.annotation]
         else:
-            return
-        value = f"{name}: {self._format_type(annotation)}"
-        if name in self.attributes:
-            if (self.attributes[name].count("EMPTY") 
-                >= value.count("EMPTY")):
+            return 
+
+        for name, annotation in zip(names, annotations): 
+            value = f"{name}: {self._format_type(annotation)}"
+            if name in self.attributes:
+                if (self.attributes[name].count("EMPTY") >= value.count("EMPTY")):
+                    self.attributes[name] = value
+            else:
                 self.attributes[name] = value
-        else:
-            self.attributes[name] = value
 
 
     def _add_method(self, node : FunctionDef) -> None:
