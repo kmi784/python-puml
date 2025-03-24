@@ -116,6 +116,31 @@ def test_init_staticmethod_classmethod():
     obj = ExtractClassChart(MockClass)
     assert "{static}" in obj.methods["static_method"]
     assert "{static}" in obj.methods["class_method"]
+
+
+class MockInstanceLevelAssignment:
+    def __init__(self):
+        self.attr = None
+        some_variable = None
+
+def test_instance_level_assignment():
+    obj = ExtractClassChart(MockInstanceLevelAssignment)
+    assert "attr" in obj.attributes
+    assert "some_variable" not in obj.attributes
+
+class MockNoneSimpleAssignment:
+    def __init__(self):
+        #self.attr = {}
+        self.attr["key"] = "value"# assignment with ast.Attribute.value != ast.Name 
+
+def test_none_simple_attribute_assignment():
+    obj = ExtractClassChart(MockNoneSimpleAssignment)
+    print(obj)
+
+
+ 
+
+
  
 
 if __name__ == "__main__":
