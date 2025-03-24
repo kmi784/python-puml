@@ -95,10 +95,10 @@ class ExtractClassChart:
             elif isinstance(subnode, Attribute):
                 kind = "{property}"
         # determines argument names and their types
-        arguments = [
+        arguments = ", ".join([
             f"{arg.arg}: {self._format_type(arg.annotation)}" 
             for arg in node.args.args if arg.arg != "self"
-        ]
+        ])
         # determines return type
         if isinstance(node.returns, Constant):
             returns = node.returns.value 
@@ -111,7 +111,7 @@ class ExtractClassChart:
                     and any(t in value for t in ("None", "EMPTY"))):
                 self.attributes[node.name] = value
         else:
-            self.methods[node.name] = f"{kind}{node.name}({", ".join(arguments)})"\
+            self.methods[node.name] = f"{kind}{node.name}({arguments})"\
                                   f" -> {returns}"
 
 
