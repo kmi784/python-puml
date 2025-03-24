@@ -1,4 +1,5 @@
-from puml.src import ExtractClassChart
+
+from puml.src import ExtractClassChart, logger
 
 class ConstructorUmlChart:
     pass
@@ -11,8 +12,4 @@ if __name__ == "__main__":
     core = ExtractClassChart(Core)
     warning = ExtractClassChart(Warning)
 
-    print(source,
-        symlink,
-        core,
-        warning, 
-        sep="\n")
+    logger.debug(symlink)

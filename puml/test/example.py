@@ -1,14 +1,8 @@
-import logging
-from ast import literal_eval as parse # removes also comments 
+from ast import literal_eval as parse
 from os import readlink, symlink, remove
 from os.path import isfile, islink, abspath, basename, expanduser
 
-
-logging.basicConfig(
-    level = logging.DEBUG, 
-    format = "\033[93m  %(levelname)s \033[0m : %(message)s"
-)
-logger = logging.getLogger()
+from puml.src import logger
 
 class Source:
     """

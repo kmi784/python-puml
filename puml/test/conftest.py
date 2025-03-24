@@ -1,5 +1,7 @@
 from typing import List, Tuple, Union, Optional
 
+from puml.src import logger
+
 class MockCore:
     pass
 

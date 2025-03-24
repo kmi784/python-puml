@@ -14,6 +14,8 @@ from ast import (
     Constant, 
 )
 
+from puml.src import logger
+
 class ExtractClassChart:
     def __init__(self, cls, kind : str = "class"):
         self.name: str = cls.__name__
@@ -39,7 +41,7 @@ class ExtractClassChart:
                         
                 
     def __repr__(self) -> str:
-        output = f"{self.kind} {self.name}{{\n"
+        output = f"\n{self.kind} {self.name}{{\n"
         for attribute in self.attributes.values():
             output += f"\t+{attribute}\n"
         output += "\n"
@@ -134,5 +136,6 @@ class ExtractClassChart:
 if __name__ == "__main__":
     from puml.test import MockClass
 
+
     obj = ExtractClassChart(MockClass, "class")
-    print(obj)
+    logger.debug(obj)
