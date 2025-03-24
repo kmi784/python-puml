@@ -1,10 +1,10 @@
 from logging import (
     getLogger,
-    DEBUG, WARNING,
+    DEBUG,
+    WARNING,
     Formatter,
     StreamHandler,
     FileHandler,
-
 )
 from os.path import expanduser
 
@@ -16,8 +16,8 @@ def setup_logger(level=DEBUG):
     logger.setLevel(level)
 
     formatter = Formatter(
-        "%(asctime)s - %(levelname)s : %(message)s",
-        datefmt="%d.%m %H:%M")
+        "%(asctime)s - %(levelname)s : %(message)s", datefmt="%d.%m %H:%M"
+    )
 
     console_handler = StreamHandler()
     console_handler.setFormatter(formatter)
@@ -29,6 +29,7 @@ def setup_logger(level=DEBUG):
     logger.addHandler(file_handler)
 
     return logger
+
 
 logger = setup_logger()
 
