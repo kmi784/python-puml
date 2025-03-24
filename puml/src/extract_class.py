@@ -14,16 +14,16 @@ from ast import (
     Constant,
 )
 
-from puml.src import logger
+from puml.src.logger_config import logger
 
 
 class ExtractClassChart:
     """
     attributes:
-        - name: str = "<class name>"
-        - kind: str = "<class kind>"
-        - attributes: dict = {"<attr names>": "<attr name and anno>"}
-        - methods: dict = {"<meth name>": "<meth name>(<arg name and anno>) -> <return anno>"}
+        - name = "class name"
+        - kind = "class kind"
+        - attributes = {"name": "puml syntax"}
+        - methods = {"name": "puml syntax"}
 
     methods:
         - __repr__() -> str = magic method returning all members in puml class-chart syntax
@@ -51,15 +51,14 @@ class ExtractClassChart:
                 for subnode in walk(node):
                     self._add_attribute(subnode)
 
-    def __repr__(self) -> str:
-        output = f"\n{self.kind} {self.name}{{\n"
-        for attribute in self.attributes.values():
-            output += f"\t+{attribute}\n"
-        output += "\n"
-        for method in self.methods.values():
-            output += f"\t+{method}\n"
-        output += "}\n"
-        return output
+    def __hash__(self):
+        return_tuple = (
+            self.name,
+            frozenset(self.attributes.items()),
+            frozenset(self.methods.items()),
+            self.kind,
+        )
+        return hash(return_tuple)
 
     def _add_attribute(self, node: AST, is_class_level: bool = False) -> None:
         """helper method to update attribute-dictionary of instance"""
