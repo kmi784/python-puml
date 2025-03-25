@@ -17,7 +17,7 @@ from ast import (
 from puml.src.logger_config import logger
 
 
-class ExtractClassChart:
+class ClassChart:
     """
     attributes:
         - name = "class name"
@@ -164,5 +164,5 @@ class ExtractClassChart:
 if __name__ == "__main__":
     from puml.test import MockClass
 
-    obj = ExtractClassChart(MockClass, "class")
+    obj = ClassChart(MockClass, "class")
     logger.debug(obj)

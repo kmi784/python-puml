@@ -1,19 +1,18 @@
-from networkx import Graph
-
-from puml.src.extract_class import ExtractClassChart
+from puml.src.extract_class import ClassChart
 
 
 class UmlChart:
     def __init__(self):
-        self.chart = Graph()
+        self.classes: list = []
+        self.relations: dict[tuple, str] = {}
 
     def add_class(self, cls):
-        value = ExtractClassChart(cls)
-        self.chart.add_node(value)
+        value = ClassChart(cls)
+        self.classes.append(value)
         return value
 
     def add_relation(self, arg1, arg2, kind: str = "---"):
-        self.chart.add_edge(arg1, arg2, rel=kind)
+        self.relations[(arg1, arg2)] = kind
 
     def __repr__(self):
         def _handel_members(members, indent=1):
@@ -25,7 +24,7 @@ class UmlChart:
             return value
 
         output = ""
-        for node, _ in self.chart.nodes.data():
+        for node in self.classes:
             output += (
                 f"\n{node.kind} {node.name} {{"
                 f"{_handel_members(node.attributes)}"
@@ -33,8 +32,8 @@ class UmlChart:
                 f"\n}}"
             )
 
-        for node1, node2, kwargs in self.chart.edges.data():
-            output += f"\n{node1.name} {kwargs["rel"]} {node2.name}"
+        for pair, rel in self.relations.items():
+            output += f"\n{pair[0].name} {rel} {pair[1].name}"
         return output
 
 
