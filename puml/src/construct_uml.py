@@ -1,26 +1,83 @@
-from puml.src.extract_class import ClassChart
+"""
+This module contains the "UmlChart"-class (user interface) to handle class-chart
+extraction and puml-chart-code generation.
+"""
 
+from puml.src import logger, ClassChart
 
 class UmlChart:
+    """
+    User interface to specify the objects to be drawn.
+
+    Parameters
+    ----------
+    None
+
+    Attributes
+    ----------
+    classes: list
+        collection of ClassChart instances
+    relations: dict
+        the key is tuple of two ClassChart instances and the value is puml-expression
+        for the relation as string
+
+    Examples
+    --------
+    >>> from puml import UmlChart
+    >>> uml = UmlChart()
+    >>> a = uml.add_class(MyClassA)
+    >>> b = uml.add_class(MyClassB)
+    >>> uml.add_relation(a, b, "--o")
+    >>> print(uml)
+    """
+
     def __init__(self):
         self.classes: list = []
         self.relations: dict[tuple, str] = {}
 
-    def add_class(self, cls):
+    def add_class(self, cls: type) -> ClassChart:
+        """
+        Adds a class to the uml-chart.
+
+        Parameters
+        ----------
+        cls : type
+            type of target class
+
+        Returns
+        -------
+        ClassChart
+            target class as ClassChart instance
+        """
         value = ClassChart(cls)
         self.classes.append(value)
         return value
 
-    def add_relation(self, arg1, arg2, kind: str = "---"):
+    def add_relation(
+        self, arg1: ClassChart, arg2: ClassChart, kind: str = "--|>"
+    ) -> None:
+        """
+        Adds a relation of two classes to the uml-chart.
+
+        Parameters
+        ----------
+        arg1 : ClassChart
+        arg2 : ClassChart
+        kind : str
+            relation from arg1 to arg2 (default = "--|>")
+        """
         self.relations[(arg1, arg2)] = kind
 
     def __repr__(self):
-        def _handel_members(members, indent=1):
+        "representation-method to print puml-syntax source code"
+
+        def _handel_members(members):
+            "helper function to ignore private members"
             value = ""
             if len(members) != 0:
                 for member in members.values():
                     if member[0] != "_":
-                        value += f"\n{"\t"*indent}+{member}"
+                        value += f"\n\t+{member}"
             return value
 
         output = ""
@@ -51,4 +108,4 @@ if __name__ == "__main__":
     uml.add_relation(symlink, core, kind="o--")
     uml.add_relation(source, core, kind="o--")
 
-    print(uml)
+    logger.debug(uml)

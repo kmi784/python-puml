@@ -1,4 +1,8 @@
-from inspect import getfile
+"""
+This module contains the "ClassChart"-class for extracting puml syntax form the source
+code by the usage of the ast-package.
+"""
+
 from ast import (
     parse,
     walk,
@@ -13,23 +17,34 @@ from ast import (
     Tuple,
     Constant,
 )
+from inspect import getfile
 
-from puml.src.logger_config import logger
+from puml.src import logger
 
 
 class ClassChart:
     """
-    attributes:
-        - name = "class name"
-        - kind = "class kind"
-        - attributes = {"name": "puml syntax"}
-        - methods = {"name": "puml syntax"}
+    Collection of all members in a target-class with there corresponding uml-expression.
 
-    methods:
-        - __repr__() -> str = magic method returning all members in puml class-chart syntax
+    Parameters
+    ----------
+    cls : type
+    kind : "abstract", "class" or "interface"}
+
+
+    Attributes
+    ----------
+    name : str
+        Name of the passed type-object
+    kind : str
+        Name of uml-class-diagramm-type
+    attributes : {"name": "puml syntax"}
+        Names of attributes and properties mapped to there uml-expressions
+    methods : {"name": "puml syntax"}
+        Names of attributes and properties mapped to there uml-expressions
     """
 
-    def __init__(self, cls, kind: str = "class"):
+    def __init__(self, cls: type, kind: str = "class"):
         self.name: str = cls.__name__
         self.attributes: dict = {}
         self.methods: dict = {}
@@ -52,6 +67,7 @@ class ClassChart:
                     self._add_attribute(subnode)
 
     def __hash__(self):
+        """hash-method to use instances in other classes as attributes"""
         return_tuple = (
             self.name,
             frozenset(self.attributes.items()),
