@@ -33,15 +33,32 @@ class UmlChart:
     """
 
     def __init__(self):
-        self.classes: list = []
+        self.classes: dict = {}
         self.relations: dict[tuple, str] = {}
 
     def __repr__(self):
         """representation-method to print puml-syntax"""
 
-        output = "\n"
-        for node in self.classes:
-            output += str(node) + "\n"
+        def _print_structure(arg: dict, indent: int = 0):
+            rtrn = ""
+            for key, value in arg.items():
+                if isinstance(key, str) and isinstance(value, dict):
+                    rtrn += (
+                        "\t" * indent
+                        + f'package "{key}"{{\n{_print_structure(value, indent + 1)}'
+                        + "\t" * indent
+                        + "}\n"
+                    )
+                elif isinstance(key, ClassChart):
+                    rtrn += (
+                        "\n".join(
+                            ["\t" * indent + f"{line}" for line in str(key).split("\n")]
+                        )
+                        + f"\n"
+                    )
+            return rtrn
+
+        output = _print_structure(self.classes)
 
         for pair, rel in self.relations.items():
             output += f"\n{pair[0].name} {rel} {pair[1].name}"
@@ -62,7 +79,7 @@ class UmlChart:
             target class as ClassChart instance
         """
         value = ClassChart(cls)
-        self.classes.append(value)
+        self.classes[value] = None
         return value
 
     def add_relation(
@@ -80,22 +97,25 @@ class UmlChart:
         """
         self.relations[(arg1, arg2)] = kind
 
-    def add_package(name: str, *args) -> dict:
+    def set_structure(self, tree: dict) -> None:
         """
         Adds a package with specified classes.
 
         Parameters
         ----------
-        name : str
-        *args: ClassChart or dict[str, dict]
+        tree: dict[str or ClassChart, dict or None]
             members of the package
-
-        Returns
-        -------
-        dict
-            package as dictionary with values of type ClassChart or packages
         """
-        pass
+
+        def _check_for_members(arg: dict):
+            for key, value in arg.items():
+                if isinstance(value, dict):
+                    _check_for_members(value)
+                elif isinstance(key, ClassChart):
+                    self.classes.pop(key)
+
+        _check_for_members(tree)
+        self.classes = self.classes | tree
 
     def draw(self, file: str) -> None:
         """
@@ -118,6 +138,19 @@ if __name__ == "__main__":
     warning = uml.add_class(Warning)
     symlink = uml.add_class(SymLink)
     core = uml.add_class(Core)
+
+    uml.set_structure(
+        {
+            core: None,
+            "sub": {
+                source: None,
+                "sym": {
+                    warning: None,
+                    symlink: None,
+                },
+            },
+        }
+    )
 
     uml.add_relation(symlink, warning, kind="--|>")
     uml.add_relation(symlink, core, kind="o--")

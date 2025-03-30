@@ -14,7 +14,7 @@ from logging import (
     FileHandler,
 )
 
-level = DEBUG
+level = WARNING
 logger = getLogger()
 logger.setLevel(level)
 
