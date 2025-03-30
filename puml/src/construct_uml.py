@@ -5,6 +5,7 @@ extraction and puml-chart-code generation.
 
 from puml.src import logger, ClassChart
 
+
 class UmlChart:
     """
     User interface to specify the objects to be drawn.
@@ -34,6 +35,17 @@ class UmlChart:
     def __init__(self):
         self.classes: list = []
         self.relations: dict[tuple, str] = {}
+
+    def __repr__(self):
+        """representation-method to print puml-syntax"""
+
+        output = "\n"
+        for node in self.classes:
+            output += str(node) + "\n"
+
+        for pair, rel in self.relations.items():
+            output += f"\n{pair[0].name} {rel} {pair[1].name}"
+        return output
 
     def add_class(self, cls: type) -> ClassChart:
         """
@@ -68,30 +80,33 @@ class UmlChart:
         """
         self.relations[(arg1, arg2)] = kind
 
-    def __repr__(self):
-        "representation-method to print puml-syntax source code"
+    def add_package(name: str, *args) -> dict:
+        """
+        Adds a package with specified classes.
 
-        def _handel_members(members):
-            "helper function to ignore private members"
-            value = ""
-            if len(members) != 0:
-                for member in members.values():
-                    if member[0] != "_":
-                        value += f"\n\t+{member}"
-            return value
+        Parameters
+        ----------
+        name : str
+        *args: ClassChart or dict[str, dict]
+            members of the package
 
-        output = ""
-        for node in self.classes:
-            output += (
-                f"\n{node.kind} {node.name} {{"
-                f"{_handel_members(node.attributes)}"
-                f"{_handel_members(node.methods)}"
-                f"\n}}"
-            )
+        Returns
+        -------
+        dict
+            package as dictionary with values of type ClassChart or packages
+        """
+        pass
 
-        for pair, rel in self.relations.items():
-            output += f"\n{pair[0].name} {rel} {pair[1].name}"
-        return output
+    def draw(self, file: str) -> None:
+        """
+        Generates a svg image of the uml-chart.
+
+        Parameters
+        ----------
+        file: str
+            target location and name of the image
+        """
+        pass
 
 
 if __name__ == "__main__":

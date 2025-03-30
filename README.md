@@ -3,7 +3,7 @@
 ## Installation
 Installing package
 ~~~sh
-python3 -m pip install git+https://github.com/kmi784/python-puml.git
+python3 -m pip install git+https://github.com/kmi784/python-puml.git@v1.0.0
 ~~~
 
 ## Development

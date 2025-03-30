@@ -67,7 +67,7 @@ class ClassChart:
                     self._add_attribute(subnode)
 
     def __hash__(self):
-        """hash-method to use instances in other classes as attributes"""
+        """hash-method to use instances as key in a dictionary"""
         return_tuple = (
             self.name,
             frozenset(self.attributes.items()),
@@ -75,6 +75,25 @@ class ClassChart:
             self.kind,
         )
         return hash(return_tuple)
+
+    def __repr__(self) -> str:
+        """representation-method to print puml-syntax"""
+
+        def _handle_members(members: dict, add_private: bool = False) -> str:
+            """helper function to ignore private members"""
+            value = ""
+            if len(members) != 0:
+                for member in members.values():
+                    if member[0] != "_" or add_private:
+                        value += f"\n\t+{member}"
+            return value
+
+        return (
+            f"{self.kind} {self.name} {{"
+            f"{_handle_members(self.attributes)}"
+            f"{_handle_members(self.methods)}"
+            f"\n}}"
+        )
 
     def _add_attribute(self, node: AST, is_class_level: bool = False) -> None:
         """helper method to update attribute-dictionary of instance"""
@@ -181,4 +200,4 @@ if __name__ == "__main__":
     from test import MockClass
 
     obj = ClassChart(MockClass, "class")
-    logger.debug(obj)
+    print(obj)
