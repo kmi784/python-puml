@@ -95,7 +95,7 @@ class UmlChart:
 
 
 if __name__ == "__main__":
-    from puml.test import Source, Warning, SymLink, Core
+    from puml.example import Source, Warning, SymLink, Core
 
     uml = UmlChart()
 

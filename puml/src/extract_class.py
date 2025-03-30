@@ -178,7 +178,7 @@ class ClassChart:
 
 
 if __name__ == "__main__":
-    from puml.test import MockClass
+    from test import MockClass
 
     obj = ClassChart(MockClass, "class")
     logger.debug(obj)

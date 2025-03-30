@@ -4,7 +4,7 @@ from typing import Union, Dict, List, Tuple, Optional
 import pytest
 
 from puml.src import ClassChart
-from puml.test import MockCore, MockClass
+from test import MockCore, MockClass
 
 
 class MockVoid:
