@@ -8,5 +8,5 @@ setup(
     packages=find_packages(
         include=["puml", "puml.*", "src", "src.*", "example", "example.*"]
     ),
-    install_requires=[]
+    install_requires=["plantweb>=1.3.0"]
 )

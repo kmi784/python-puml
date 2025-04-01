@@ -11,7 +11,6 @@ from logging import (
     WARNING,
     Formatter,
     StreamHandler,
-    FileHandler,
 )
 
 level = WARNING
@@ -26,15 +25,6 @@ formatter = Formatter(
 console_handler = StreamHandler()
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-
-# logger output in logger file
-if level == DEBUG:
-    from os.path import expanduser
-
-    log_file = expanduser("~/Developer/projects/python-puml/puml.log")
-    file_handler = FileHandler(log_file)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
 
 
 from .extract_class import ClassChart

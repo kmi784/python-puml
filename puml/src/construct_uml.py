@@ -3,6 +3,10 @@ This module contains the "UmlChart"-class (user interface) to handle class-chart
 extraction and puml-chart-code generation.
 """
 
+from pathlib import Path
+
+from plantweb.render import render
+
 from puml.src import logger, ClassChart
 
 
@@ -117,16 +121,15 @@ class UmlChart:
         _check_for_members(tree)
         self.classes = self.classes | tree
 
-    def draw(self, file: str) -> None:
+    def draw(self) -> None:
         """
-        Generates a svg image of the uml-chart.
+        Generates a svg image (with name of script) of the uml-chart.
+        """
+        out_file = Path(__file__).with_suffix(".svg")
+        svg_bytes, _, _, _ = render(str(self), engine="plantuml", format="svg")
 
-        Parameters
-        ----------
-        file: str
-            target location and name of the image
-        """
-        pass
+        with open(out_file, "wb") as file:
+            file.write(svg_bytes)
 
 
 if __name__ == "__main__":
@@ -156,4 +159,6 @@ if __name__ == "__main__":
     uml.add_relation(symlink, core, kind="o--")
     uml.add_relation(source, core, kind="o--")
 
-    logger.debug(uml)
+    uml.draw()
+
+    # logger.debug(uml)
