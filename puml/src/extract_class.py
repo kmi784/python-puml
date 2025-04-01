@@ -29,14 +29,14 @@ class ClassChart:
     Parameters
     ----------
     cls : type
-    kind : "abstract", "class" or "interface"}
+    kind : str
 
 
     Attributes
     ----------
     name : str
         Name of the passed type-object
-    kind : str
+    kind : "abstract", "class" or "interface"}
         Name of uml-class-diagramm-type
     attributes : {"name": "puml syntax"}
         Names of attributes and properties mapped to there uml-expressions
@@ -44,12 +44,11 @@ class ClassChart:
         Names of attributes and properties mapped to there uml-expressions
     """
 
-    def __init__(self, cls: type, kind: str = "class"):
+    def __init__(self, cls: type, kind: str = None):
         self.name: str = cls.__name__
         self.attributes: dict = {}
         self.methods: dict = {}
-        if kind in ("class", "interface", "abstract"):
-            self.kind: str = kind
+        self.kind: str = kind if kind in ("class", "interface", "abstract") else "class"
 
         # get considered class
         with open(getfile(cls), "r") as file:

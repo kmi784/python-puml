@@ -3,7 +3,7 @@ from puml.example.classes import Core, Source, SymLink, Warning
 
 uml = UmlChart()
 
-core = uml.add_class(Core)
+core = uml.add_class(Core, "interface")
 source = uml.add_class(Source)
 symlink = uml.add_class(SymLink)
 warning = uml.add_class(Warning)

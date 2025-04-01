@@ -29,9 +29,17 @@ class UmlChart:
     >>> from puml import UmlChart
     >>> uml = UmlChart()
     >>> a = uml.add_class(MyClassA)
-    >>> b = uml.add_class(MyClassB)
+    >>> b = uml.add_class(MyClassB, "interface")
     >>> uml.add_relation(a, b, "--o")
-    >>> print(uml)
+    >>> arg = {
+    ...     "package" : {
+    ...         "subpackage" : {MyClassA : None},
+    ...         MyClassB : None
+    ...     }
+    ... }
+    >>> uml.set_structure(arg)
+    >>> uml.draw("chart.svg") # for rendered svg-image
+    >>> print(uml) # for puml syntax as string
     """
 
     def __init__(self):
@@ -66,7 +74,7 @@ class UmlChart:
             output += f"\n{pair[0].name} {rel} {pair[1].name}"
         return output
 
-    def add_class(self, cls: type) -> ClassChart:
+    def add_class(self, cls: type, kind: str = "class") -> ClassChart:
         """
         Adds a class to the uml-chart.
 
@@ -74,13 +82,14 @@ class UmlChart:
         ----------
         cls : type
             type of target class
+        kind : "abstract", "class" or "interface"}
 
         Returns
         -------
         ClassChart
             target class as ClassChart instance
         """
-        value = ClassChart(cls)
+        value = ClassChart(cls, kind)
         self.classes[value] = None
         return value
 
@@ -122,6 +131,11 @@ class UmlChart:
     def draw(self, file: str = "chart.svg") -> None:
         """
         Generates a svg image (with name of script) of the uml-chart.
+
+        Parameters
+        ----------
+        file : str or path-object
+            target directory with name and extension 
         """
         svg_bytes, _, _, _ = render(str(self), engine="plantuml", format="svg")
 
@@ -137,7 +151,7 @@ if __name__ == "__main__":
     source = uml.add_class(Source)
     warning = uml.add_class(Warning)
     symlink = uml.add_class(SymLink)
-    core = uml.add_class(Core)
+    core = uml.add_class(Core, kind="interface")
 
     uml.set_structure(
         {
