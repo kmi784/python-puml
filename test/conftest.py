@@ -44,7 +44,7 @@ class MockClass(MockParent):
     def core(self, arg: bool) -> None:
         self._core = arg
 
-    def _help_method(self) -> None:
+    def _private_method(self) -> None:
         pass
 
     def basic_method(self, arg1: MockCore, arg2: MockCore) -> List[Union[int, float]]:
@@ -54,9 +54,14 @@ class MockClass(MockParent):
     def static_method(arg: Optional[List[Union[int, float]]]) -> None:
         pass
 
+    @staticmethod
+    def _private_static_method(arg: int) -> None:
+        pass
+
     @classmethod
     def class_method(cls) -> None:
         pass
+
 
 
 if __name__ == "__main__":

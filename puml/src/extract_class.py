@@ -84,7 +84,7 @@ class ClassChart:
             value = ""
             if len(members) != 0:
                 for member in members.values():
-                    if member[0] != "_" or add_private:
+                    if not (member[0] == "_" or "}_" in member) or add_private:
                         value += f"\n\t+{member}"
             return value
 
