@@ -166,7 +166,7 @@ if __name__ == "__main__":
         }
     )
 
-    uml.add_relation(symlink, warning, kind="--|>")
+    uml.add_relation(symlink, warning, kind="..>")
     uml.add_relation(symlink, core, kind="o--")
     uml.add_relation(source, core, kind="o--")
 

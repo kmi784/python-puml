@@ -36,7 +36,7 @@ class ClassChart:
     ----------
     name : str
         Name of the passed type-object
-    kind : "abstract", "class" or "interface"}
+    kind : "abstract", "class" or "interface"
         Name of uml-class-diagramm-type
     attributes : {"name": "puml syntax"}
         Names of attributes and properties mapped to there uml-expressions
