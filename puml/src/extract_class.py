@@ -42,6 +42,8 @@ class ClassChart:
         Names of attributes and properties mapped to there uml-expressions
     methods : {"name": "puml syntax"}
         Names of attributes and properties mapped to there uml-expressions
+    module : str
+        Module path of the passed type-object
     """
 
     def __init__(self, cls: type, kind: str = None):
@@ -49,6 +51,7 @@ class ClassChart:
         self.attributes: dict = {}
         self.methods: dict = {}
         self.kind: str = kind if kind in ("class", "interface", "abstract") else "class"
+        self.module: str = cls.__module__
 
         # get considered class
         with open(getfile(cls), "r") as file:
@@ -88,7 +91,7 @@ class ClassChart:
             return value
 
         return (
-            f"{self.kind} {self.name} {{"
+            f"{self.kind} {self.module}.{self.name} {{"
             f"{_handle_members(self.attributes)}"
             f"{_handle_members(self.methods)}"
             f"\n}}"

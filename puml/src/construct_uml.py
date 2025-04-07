@@ -27,51 +27,33 @@ class UmlChart:
     Examples
     --------
     >>> from puml import UmlChart
-    >>> uml = UmlChart()
+    >>> uml = UmlChart(root_module="MyPackage")
     >>> a = uml.add_class(MyClassA)
     >>> b = uml.add_class(MyClassB, "interface")
     >>> uml.add_relation(a, b, "--o")
-    >>> arg = {
-    ...     "package" : {
-    ...         "subpackage" : {MyClassA : None},
-    ...         MyClassB : None
-    ...     }
-    ... }
-    >>> uml.set_structure(arg)
     >>> uml.draw("chart.svg") # for rendered svg-image
     >>> print(uml) # for puml syntax as string
     """
 
-    def __init__(self):
-        self.classes: dict = {}
+    def __init__(self, root_module: str = None):
+        self.classes: list = []
         self.relations: dict[tuple, str] = {}
+        self.root = root_module
 
     def __repr__(self):
         """representation-method to print puml-syntax"""
+        # packaging
+        self._set_root()
 
-        def _print_structure(arg: dict, indent: int = 0):
-            rtrn = ""
-            for key, value in arg.items():
-                if isinstance(key, str) and isinstance(value, dict):
-                    rtrn += (
-                        "\t" * indent
-                        + f'package "{key}"{{\n{_print_structure(value, indent + 1)}'
-                        + "\t" * indent
-                        + "}\n"
-                    )
-                elif isinstance(key, ClassChart):
-                    rtrn += (
-                        "\n".join(
-                            ["\t" * indent + f"{line}" for line in str(key).split("\n")]
-                        )
-                        + f"\n"
-                    )
-            return rtrn
+        output = "\n"
+        # classes
+        for cls in self.classes:
+            output += f"{cls}\n"
 
-        output = _print_structure(self.classes)
-
+        # relations
         for pair, rel in self.relations.items():
             output += f"\n{pair[0].name} {rel} {pair[1].name}"
+
         return output
 
     def add_class(self, cls: type, kind: str = "class") -> ClassChart:
@@ -81,8 +63,8 @@ class UmlChart:
         Parameters
         ----------
         cls : type
-            type of target class
-        kind : "abstract", "class" or "interface"}
+            target class type
+        kind : "abstract", "class" or "interface"
 
         Returns
         -------
@@ -90,7 +72,7 @@ class UmlChart:
             target class as ClassChart instance
         """
         value = ClassChart(cls, kind)
-        self.classes[value] = None
+        self.classes.append(value)
         return value
 
     def add_relation(
@@ -108,26 +90,6 @@ class UmlChart:
         """
         self.relations[(arg1, arg2)] = kind
 
-    def set_structure(self, tree: dict) -> None:
-        """
-        Adds a package with specified classes.
-
-        Parameters
-        ----------
-        tree: dict[str or ClassChart, dict or None]
-            members of the package
-        """
-
-        def _check_for_members(arg: dict):
-            for key, value in arg.items():
-                if isinstance(value, dict):
-                    _check_for_members(value)
-                elif isinstance(key, ClassChart):
-                    self.classes.pop(key)
-
-        _check_for_members(tree)
-        self.classes = self.classes | tree
-
     def draw(self, file: str = "chart.svg") -> None:
         """
         Generates a svg image (with name of script) of the uml-chart.
@@ -135,51 +97,41 @@ class UmlChart:
         Parameters
         ----------
         file : str or path-object
-            target directory with name and extension 
+            target directory with name and extension
         """
         svg_bytes, _, _, _ = render(str(self), engine="plantuml", format="svg")
-
         with open(file, "wb") as f:
             f.write(svg_bytes)
+
+    def _set_root(self):
+        """helper method to packing uml chart according to specified root package"""
+
+        def _set_new_parents(old_name: str) -> str:
+            """helper function to get new module parents"""
+            if self.root:
+                parents = old_name.split(".")
+                if parents.count(self.root) == 1:
+                    return ".".join(parents[parents.index(self.root) + 1 :])
+                return ""
+            return ""
+
+        for cls in self.classes:
+            cls.module = _set_new_parents(cls.module)
 
 
 if __name__ == "__main__":
     from puml.example import Source, Warning, SymLink, Core
 
-    test = """
-class foo1.foo2.MyClass {
-    +attr: int
-    +method(arg: int) -> bool
-}
-    """
+    uml = UmlChart(root_module="puml")
 
-    svg_bytes, _, _, _ = render(str(test), engine="plantuml", format="svg")
-
-    with open("test.svg", "wb") as f:
-        f.write(svg_bytes)
-    #uml = UmlChart()
-
+    source = uml.add_class(Source)
+    warning = uml.add_class(Warning)
+    symlink = uml.add_class(SymLink)
+    core = uml.add_class(Core, kind="interface")
 
     uml.add_relation(symlink, warning, kind="..>")
     uml.add_relation(symlink, core, kind="o--")
     uml.add_relation(source, core, kind="o--")
 
-
-    #uml.set_structure(
-    #    {
-    #        core: None,
-    #        "sub": {
-    #            source: None,
-    #            "sym": {
-    #                warning: None,
-    #                symlink: None,
-    #            },
-    #        },
-    #    }
-    #)
-
-    #uml.add_relation(symlink, warning, kind="--|>")
-    #uml.add_relation(symlink, core, kind="o--")
-    #uml.add_relation(source, core, kind="o--")
-
-    #uml.draw()
+    uml.draw()
+    print(uml)
