@@ -146,28 +146,39 @@ class UmlChart:
 if __name__ == "__main__":
     from puml.example import Source, Warning, SymLink, Core
 
-    uml = UmlChart()
+    test = """
+class foo1.foo2.MyClass {
+    +attr: int
+    +method(arg: int) -> bool
+}
+    """
 
-    source = uml.add_class(Source)
-    warning = uml.add_class(Warning)
-    symlink = uml.add_class(SymLink)
-    core = uml.add_class(Core, kind="interface")
+    svg_bytes, _, _, _ = render(str(test), engine="plantuml", format="svg")
 
-    uml.set_structure(
-        {
-            core: None,
-            "sub": {
-                source: None,
-                "sym": {
-                    warning: None,
-                    symlink: None,
-                },
-            },
-        }
-    )
+    with open("test.svg", "wb") as f:
+        f.write(svg_bytes)
+    #uml = UmlChart()
 
-    uml.add_relation(symlink, warning, kind="--|>")
-    uml.add_relation(symlink, core, kind="o--")
-    uml.add_relation(source, core, kind="o--")
+    #source = uml.add_class(Source)
+    #warning = uml.add_class(Warning)
+    #symlink = uml.add_class(SymLink)
+    #core = uml.add_class(Core, kind="interface")
 
-    uml.draw()
+    #uml.set_structure(
+    #    {
+    #        core: None,
+    #        "sub": {
+    #            source: None,
+    #            "sym": {
+    #                warning: None,
+    #                symlink: None,
+    #            },
+    #        },
+    #    }
+    #)
+
+    #uml.add_relation(symlink, warning, kind="--|>")
+    #uml.add_relation(symlink, core, kind="o--")
+    #uml.add_relation(source, core, kind="o--")
+
+    #uml.draw()
