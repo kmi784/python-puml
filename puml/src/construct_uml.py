@@ -159,10 +159,11 @@ class foo1.foo2.MyClass {
         f.write(svg_bytes)
     #uml = UmlChart()
 
-    #source = uml.add_class(Source)
-    #warning = uml.add_class(Warning)
-    #symlink = uml.add_class(SymLink)
-    #core = uml.add_class(Core, kind="interface")
+
+    uml.add_relation(symlink, warning, kind="..>")
+    uml.add_relation(symlink, core, kind="o--")
+    uml.add_relation(source, core, kind="o--")
+
 
     #uml.set_structure(
     #    {
